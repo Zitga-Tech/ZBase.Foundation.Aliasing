@@ -5,6 +5,7 @@ namespace ZBase.Foundation.Aliasing
     partial class AliasDeclaration
     {
         private const string AGGRESSIVE_INLINING = "[global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]";
+        private const string GENERATED_CODE = "[global::System.CodeDom.Compiler.GeneratedCode(\"ZBase.Foundation.Aliasing.AliasGenerator\", \"1.0.1\")]";
 
         public string WriteCode()
         {
@@ -16,7 +17,7 @@ namespace ZBase.Foundation.Aliasing
 
             p = p.IncreasedIndent();
             {
-                p.PrintLine("[global::System.Runtime.CompilerServices.CompilerGenerated]");
+                p.PrintLine(GENERATED_CODE);
                 p.PrintLine($"[global::System.ComponentModel.TypeConverter(typeof({TypeName}TypeConverter))]");
                 p.PrintLine($"partial struct {TypeName} : global::System.IEquatable<{FullTypeName}>");
 
@@ -239,7 +240,7 @@ namespace ZBase.Foundation.Aliasing
 
                     p.PrintEndLine();
 
-                    p.PrintLine("[global::System.Runtime.CompilerServices.CompilerGenerated]");
+                    p.PrintLine(GENERATED_CODE);
                     p.PrintLine($"private class {TypeName}TypeConverter : global::System.ComponentModel.TypeConverter");
                     p.OpenScope();
                     {
