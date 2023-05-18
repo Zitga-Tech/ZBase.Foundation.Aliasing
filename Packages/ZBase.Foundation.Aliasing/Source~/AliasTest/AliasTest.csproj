@@ -8,6 +8,7 @@
     <ItemGroup>
         <ProjectReference Include="../AliasGenerator/AliasGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
         <ProjectReference Include="../Common/ZBase.Foundation.SourceGen.Common.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+        <ProjectReference Include="../ZBase.Foundation.Aliasing.SourceGen/ZBase.Foundation.Aliasing.SourceGen.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     </ItemGroup>
 
 </Project>
