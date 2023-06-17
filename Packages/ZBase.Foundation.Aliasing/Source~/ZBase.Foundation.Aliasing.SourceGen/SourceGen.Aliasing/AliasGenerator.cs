@@ -12,7 +12,7 @@ namespace ZBase.Foundation.Aliasing
     public class AliasGenerator : IIncrementalGenerator
     {
         public const string ATTRIBUTE_NAME = "Alias";
-        public const string FULL_ATTRIBUTE_NAME = "global::ZBase.Foundation.Aliasing.AliasAttribute";
+        public const string ALIAS_ATTRIBUTE = "global::ZBase.Foundation.Aliasing.AliasAttribute";
         public const string GENERATOR_NAME = nameof(AliasGenerator);
 
         public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -20,9 +20,9 @@ namespace ZBase.Foundation.Aliasing
             var projectPathProvider = SourceGenHelpers.GetSourceGenConfigProvider(context);
 
             var candidateProvider = context.SyntaxProvider.CreateSyntaxProvider(
-                predicate: IsSyntaxMatch,
-                transform: GetSemanticSyntaxMatch
-            ).Where(t => t is { });
+                predicate: IsValidStructSyntax,
+                transform: GetSemanticSymbolMatch
+            ).Where(t => t.syntax is { } && t.symbol is { });
 
             var compilationProvider = context.CompilationProvider;
             var combined = candidateProvider.Combine(compilationProvider).Combine(projectPathProvider);
@@ -38,78 +38,46 @@ namespace ZBase.Foundation.Aliasing
             });
         }
 
-        public static bool IsSyntaxMatch(
-              SyntaxNode syntaxNode
-            , CancellationToken token
-        )
+        private static bool IsValidStructSyntax(SyntaxNode node, CancellationToken _)
         {
-            token.ThrowIfCancellationRequested();
-
-            if (syntaxNode is not StructDeclarationSyntax structSyntax)
-            {
-                return false;
-            }
-
-            if (structSyntax.AttributeLists == null || structSyntax.AttributeLists.Count < 1)
-            {
-                return false;
-            }
-
-            foreach (var attribList in structSyntax.AttributeLists)
-            {
-                foreach (var attrib in attribList.Attributes)
-                {
-                    if (attrib.Name is IdentifierNameSyntax identifierNameSyntax
-                        && identifierNameSyntax.Identifier.ValueText == ATTRIBUTE_NAME
-                    )
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
+            return node is StructDeclarationSyntax syntax
+                && syntax.AttributeLists.Count > 0
+                && syntax.HasAttributeCandidate("ZBase.Foundation.Aliasing", "Alias")
+                ;
         }
 
-        public static StructDeclarationSyntax GetSemanticSyntaxMatch(
-              GeneratorSyntaxContext syntaxContext
+        public static (StructDeclarationSyntax syntax, INamedTypeSymbol symbol) GetSemanticSymbolMatch(
+              GeneratorSyntaxContext context
             , CancellationToken token
         )
         {
             token.ThrowIfCancellationRequested();
 
-            if (syntaxContext.Node is not StructDeclarationSyntax structSyntax)
+            if (context.Node is not StructDeclarationSyntax syntax)
             {
-                return null;
+                return (null, null);
             }
 
-            var semanticModel = syntaxContext.SemanticModel;
+            var semanticModel = context.SemanticModel;
+            var symbol = semanticModel.GetDeclaredSymbol(syntax, token);
 
-            foreach (var attribList in structSyntax.AttributeLists)
+            if (symbol == null || symbol.HasAttribute(ALIAS_ATTRIBUTE) == false)
             {
-                foreach (var attrib in attribList.Attributes)
-                {
-                    var typeInfo = semanticModel.GetTypeInfo(attrib, token);
-                    var fullName = typeInfo.Type.ToFullName();
-
-                    if (fullName.StartsWith(FULL_ATTRIBUTE_NAME))
-                    {
-                        return structSyntax;
-                    }
-                }
+                return (null, null);
             }
 
-            return null;
+            return (syntax, symbol);
         }
 
         private static void GenerateOutput(
               SourceProductionContext context
             , Compilation compilation
-            , StructDeclarationSyntax candidate
+            , (StructDeclarationSyntax syntax, INamedTypeSymbol symbol) candidate
             , string projectPath
             , bool outputSourceGenFiles
         )
         {
-            if (candidate == null)
+            if (candidate.syntax == null || candidate.symbol == null)
             {
                 return;
             }
@@ -120,9 +88,14 @@ namespace ZBase.Foundation.Aliasing
             {
                 SourceGenHelpers.ProjectPath = projectPath;
 
-                var syntaxTree = candidate.SyntaxTree;
+                var syntaxTree = candidate.syntax.SyntaxTree;
                 var semanticModel = compilation.GetSemanticModel(syntaxTree);
-                var declaration = new AliasDeclaration(candidate, semanticModel, context.CancellationToken);
+                var declaration = new AliasDeclaration(
+                      candidate.syntax
+                    , candidate.symbol
+                    , semanticModel
+                    , context.CancellationToken
+                );
 
                 if (declaration.IsValid == false)
                 {
@@ -133,13 +106,13 @@ namespace ZBase.Foundation.Aliasing
                 var sourceFilePath = syntaxTree.GetGeneratedSourceFilePath(compilation.Assembly.Name, GENERATOR_NAME);
                 var outputSource = TypeCreationHelpers.GenerateSourceTextForRootNodes(
                       sourceFilePath
-                    , candidate
+                    , candidate.syntax
                     , source
                     , context.CancellationToken
                 );
 
                 context.AddSource(
-                      syntaxTree.GetGeneratedSourceFileName(GENERATOR_NAME, candidate)
+                      syntaxTree.GetGeneratedSourceFileName(GENERATOR_NAME, candidate.syntax)
                     , outputSource
                 );
 
@@ -147,7 +120,7 @@ namespace ZBase.Foundation.Aliasing
                 {
                     SourceGenHelpers.OutputSourceToFile(
                           context
-                        , candidate.GetLocation()
+                        , candidate.syntax.GetLocation()
                         , sourceFilePath
                         , outputSource
                     );
@@ -162,7 +135,7 @@ namespace ZBase.Foundation.Aliasing
 
                 context.ReportDiagnostic(Diagnostic.Create(
                       s_errorDescriptor
-                    , candidate.GetLocation()
+                    , candidate.syntax.GetLocation()
                     , e.ToUnityPrintableString()
                 ));
             }

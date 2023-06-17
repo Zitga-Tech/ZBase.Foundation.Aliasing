@@ -9,7 +9,7 @@ namespace ZBase.Foundation.Aliasing
 {
     public partial class AliasDeclaration
     {
-        public const string FULL_ATTRIBUTE_NAME = "global::ZBase.Foundation.Aliasing.AliasAttribute";
+        public const string ALIAS_ATTRIBUTE = "global::ZBase.Foundation.Aliasing.AliasAttribute";
 
         public StructDeclarationSyntax Syntax { get; private set; }
 
@@ -41,11 +41,16 @@ namespace ZBase.Foundation.Aliasing
 
         public string GreaterThanOrEqualReturnTypeName { get; private set; }
 
-        public AliasDeclaration(StructDeclarationSyntax candidate, SemanticModel semanticModel, CancellationToken token)
+        public AliasDeclaration(
+              StructDeclarationSyntax syntax
+            , INamedTypeSymbol symbol
+            , SemanticModel semanticModel
+            , CancellationToken token
+        )
         {
-            Syntax = candidate;
-            Symbol = semanticModel.GetDeclaredSymbol(candidate, token);
-            TypeName = candidate.Identifier.ValueText;
+            Syntax = syntax;
+            Symbol = symbol;
+            TypeName = syntax.Identifier.ValueText;
             FullTypeName = Symbol.ToFullName();
             IsReadOnly = Symbol.IsReadOnly;
 
@@ -53,19 +58,14 @@ namespace ZBase.Foundation.Aliasing
             string fieldName = null;
             string toStringFormat = null;
 
-            foreach (var attribList in candidate.AttributeLists)
+            foreach (var attribList in syntax.AttributeLists)
             {
                 foreach (var attrib in attribList.Attributes)
                 {
-                    var typeInfo = semanticModel.GetTypeInfo(attrib, token);
-                    var fullName = typeInfo.Type.ToFullName();
-
-                    if (fullName.StartsWith(FULL_ATTRIBUTE_NAME) == false)
-                    {
-                        continue;
-                    }
-
-                    if (attrib.ArgumentList == null || attrib.ArgumentList.Arguments.Count < 1)
+                    if (attrib.Name.IsTypeNameCandidate("ZBase.Foundation.Aliasing", "Alias") == false
+                        || attrib.ArgumentList == null
+                        || attrib.ArgumentList.Arguments.Count < 1
+                    )
                     {
                         continue;
                     }
@@ -80,14 +80,15 @@ namespace ZBase.Foundation.Aliasing
                             if (expr is TypeOfExpressionSyntax typeOfExpr)
                             {
                                 fieldTypeSymbol = semanticModel
-                                    .GetSymbolInfo(typeOfExpr.Type).Symbol as ITypeSymbol
-                                    ?? throw new Exception("Require type symbol.");
+                                    .GetSymbolInfo(typeOfExpr.Type, token).Symbol as ITypeSymbol;
 
-                                FieldTypeName = fieldTypeSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                                FieldTypeName = fieldTypeSymbol?
+                                    .ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
+                                    ?? string.Empty;
                             }
                             else
                             {
-                                throw new Exception("Require [Alias] attribute and .ctor.");
+                                continue;
                             }
                         }
                         else if (i == 1) // AliasOptions options
