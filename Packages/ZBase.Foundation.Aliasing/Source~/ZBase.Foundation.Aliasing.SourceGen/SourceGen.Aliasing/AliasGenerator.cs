@@ -97,7 +97,7 @@ namespace ZBase.Foundation.Aliasing
                     , context.CancellationToken
                 );
 
-                if (declaration.IsValid == false)
+                if (declaration.FieldTypeSymbol == null)
                 {
                     return;
                 }

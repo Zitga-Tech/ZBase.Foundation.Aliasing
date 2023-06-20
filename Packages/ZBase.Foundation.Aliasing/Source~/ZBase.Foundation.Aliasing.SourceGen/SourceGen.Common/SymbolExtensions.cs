@@ -1,19 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 // Everything in this file was copied from Unity's source generators.
 namespace ZBase.Foundation.SourceGen
 {
     public static class SymbolExtensions
     {
-        private static SymbolDisplayFormat QualifiedFormat { get; }
+        public static SymbolDisplayFormat QualifiedFormat { get; }
             = new SymbolDisplayFormat(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
@@ -23,7 +19,34 @@ namespace ZBase.Foundation.SourceGen
                 SymbolDisplayMiscellaneousOptions.UseSpecialTypes
             );
 
-        private static SymbolDisplayFormat QualifiedFormatWithoutGlobalPrefix { get; }
+        public static SymbolDisplayFormat QualifiedFormatNoGeneric { get; }
+            = new SymbolDisplayFormat(
+                typeQualificationStyle:
+                    SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                globalNamespaceStyle:
+                    SymbolDisplayGlobalNamespaceStyle.Included,
+                miscellaneousOptions:
+                    SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
+                    SymbolDisplayMiscellaneousOptions.UseSpecialTypes
+            );
+
+        public static SymbolDisplayFormat MemberFormat { get; }
+            = new SymbolDisplayFormat(
+                typeQualificationStyle:
+                    SymbolDisplayTypeQualificationStyle.NameOnly,
+                genericsOptions:
+                    SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                memberOptions:
+                    SymbolDisplayMemberOptions.IncludeParameters,
+                parameterOptions:
+                    SymbolDisplayParameterOptions.IncludeType |
+                    SymbolDisplayParameterOptions.IncludeParamsRefOut,
+                miscellaneousOptions:
+                    SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
+                    SymbolDisplayMiscellaneousOptions.UseSpecialTypes
+            );
+
+        public static SymbolDisplayFormat QualifiedFormatWithoutGlobalPrefix { get; }
             = new SymbolDisplayFormat(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
@@ -32,7 +55,7 @@ namespace ZBase.Foundation.SourceGen
                 SymbolDisplayMiscellaneousOptions.UseSpecialTypes
             );
 
-        private static SymbolDisplayFormat QualifiedFormatWithoutSpecialTypeNames { get; }
+        public static SymbolDisplayFormat QualifiedFormatWithoutSpecialTypeNames { get; }
             = new SymbolDisplayFormat(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,

@@ -3,29 +3,20 @@ using ZBase.Foundation.Aliasing;
 
 namespace AliasTest
 {
-    [Alias(typeof(int), AliasOptions.Default)]
-    public partial struct AliasOfInt { }
+    [Alias(typeof(int))]
+    public partial struct AliasOfInt
+    {
+    }
+
+    [Alias(typeof(AttributeTargets))]
+    public partial struct AliasOfEnum
+    {
+
+    }
 }
 
 namespace ZBase.Foundation.Aliasing
 {
-    [Flags]
-    public enum AliasOptions
-    {
-        None                                 = 0,
-        ImplicitOperator                     = 1 << 0,
-        ArithmeticOperator                   = 1 << 1,
-        ValueArithmeticOperator              = 1 << 2,
-        Comparable                           = 1 << 3,
-        WithoutComparisonOperator            = 1 << 4,
-        ExposeValueAsPublicField             = 1 << 5,
-        IsReadOnlyRef                        = 1 << 6,
-        Validate                             = 1 << 7,
-
-        Default                              = ImplicitOperator | ExposeValueAsPublicField,
-        DefaultReadOnlyRef                   = Default | IsReadOnlyRef,
-    }
-
     /// <summary>
     /// Add to structs that want to be an alias of another <see cref="Type"/>
     /// </summary>
@@ -36,8 +27,6 @@ namespace ZBase.Foundation.Aliasing
         /// Type of the underlying value of this struct
         /// </summary>
         public Type Type { get; }
-
-        public AliasOptions Options { get; }
 
         /// <summary>
         /// Name of the underlying field
@@ -53,18 +42,15 @@ namespace ZBase.Foundation.Aliasing
         /// 
         /// </summary>
         /// <param name="type">Type of the underlying value of this struct</param>
-        /// <param name="options"></param>
         /// <param name="fieldName">Name of the underlying field</param>
         /// <param name="toStringFormat"></param>
         public AliasAttribute(
               Type type
-            , AliasOptions options = AliasOptions.None
             , string fieldName = "value"
             , string toStringFormat = null
         )
         {
             this.Type = type;
-            this.Options = options;
             this.FieldName = fieldName;
             this.Format = toStringFormat;
         }

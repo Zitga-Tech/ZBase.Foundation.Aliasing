@@ -2,6 +2,8 @@
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using ZBase.Foundation.SourceGen;
 
@@ -11,35 +13,35 @@ namespace ZBase.Foundation.Aliasing
     {
         public const string ALIAS_ATTRIBUTE = "global::ZBase.Foundation.Aliasing.AliasAttribute";
 
-        public StructDeclarationSyntax Syntax { get; private set; }
+        public StructDeclarationSyntax Syntax { get; }
 
-        public INamedTypeSymbol Symbol { get; private set; }
+        public INamedTypeSymbol Symbol { get; }
 
-        public string TypeName { get; private set; }
+        public ITypeSymbol FieldTypeSymbol { get; }
 
-        public string FullTypeName { get; private set; }
+        public string TypeName { get; }
 
-        public bool IsValid { get; private set; }
+        public string FullTypeName { get; }
 
-        public string FieldTypeName { get; private set; }
+        public string FieldTypeName { get; }
 
-        public AliasOptions Options { get; private set; }
+        public string ToStringFormat { get; }
 
-        public string ToStringFormat { get; private set; }
+        public bool IsFieldDeclared { get; }
 
-        public bool IsFieldDeclared { get; private set; }
+        public bool IsReadOnly { get; }
 
-        public bool IsReadOnly { get; private set; }
+        public string FieldName { get; }
 
-        public string FieldName { get; private set; }
+        public string EqualityReturnTypeName { get; }
 
-        public OperatorOptions Operators { get; private set; }
+        public string GreaterThanReturnTypeName { get; }
 
-        public string EqualityReturnTypeName { get; private set; }
+        public string GreaterThanOrEqualReturnTypeName { get; }
 
-        public string GreaterThanReturnTypeName { get; private set; }
+        public ImmutableArray<ISymbol> Members { get; }
 
-        public string GreaterThanOrEqualReturnTypeName { get; private set; }
+        public ImmutableArray<INamedTypeSymbol> Interfaces { get; }
 
         public AliasDeclaration(
               StructDeclarationSyntax syntax
@@ -54,7 +56,6 @@ namespace ZBase.Foundation.Aliasing
             FullTypeName = Symbol.ToFullName();
             IsReadOnly = Symbol.IsReadOnly;
 
-            ITypeSymbol fieldTypeSymbol = null;
             string fieldName = null;
             string toStringFormat = null;
 
@@ -79,60 +80,42 @@ namespace ZBase.Foundation.Aliasing
                         {
                             if (expr is TypeOfExpressionSyntax typeOfExpr)
                             {
-                                fieldTypeSymbol = semanticModel
-                                    .GetSymbolInfo(typeOfExpr.Type, token).Symbol as ITypeSymbol;
-
-                                FieldTypeName = fieldTypeSymbol?
-                                    .ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
-                                    ?? string.Empty;
+                                FieldTypeSymbol = semanticModel.GetSymbolInfo(typeOfExpr.Type, token).Symbol as ITypeSymbol;
                             }
                             else
                             {
                                 continue;
                             }
                         }
-                        else if (i == 1) // AliasOptions options
-                        {
-                            try
-                            {
-                                var parsed = Enum.ToObject(typeof(AliasOptions), semanticModel.GetConstantValue(expr).Value);
-                                Options = (AliasOptions)parsed;
-                            }
-                            catch
-                            {
-                                Options = AliasOptions.Default;
-                            }
-                        }
-                        else if (i == 2) // string fieldName
+                        else if (i == 1) // string fieldName
                         {
                             fieldName = semanticModel.GetConstantValue(expr).Value?.ToString();
                         }
-                        else if (i == 3) // string toStringFormat
+                        else if (i == 2) // string toStringFormat
                         {
                             toStringFormat = semanticModel.GetConstantValue(expr).Value?.ToString();
                         }
                     }
 
-                    if (fieldTypeSymbol != null)
+                    if (FieldTypeSymbol != null)
                     {
-                        IsValid = true;
                         break;
                     }
                 }
             }
 
-            if (IsValid == false)
+            if (FieldTypeSymbol == null)
             {
                 return;
             }
 
+            FieldTypeName = FieldTypeSymbol.ToFullName();
             FieldName = string.IsNullOrWhiteSpace(fieldName) ? "value" : fieldName;
             ToStringFormat = string.IsNullOrWhiteSpace(toStringFormat) ? string.Empty : toStringFormat;
 
             var members = Symbol.GetMembers();
-            var fieldTypeMembers = fieldTypeSymbol.GetMembers();
+            var fieldTypeMembers = FieldTypeSymbol.GetMembers();
 
-            Operators = OperatorOptions.None;
             EqualityReturnTypeName = "bool";
             GreaterThanReturnTypeName = "bool";
             GreaterThanOrEqualReturnTypeName = "bool";
@@ -141,9 +124,7 @@ namespace ZBase.Foundation.Aliasing
             {
                 if (member is IFieldSymbol field)
                 {
-                    if (field.Name == FieldName
-                        && field.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) == FieldTypeName
-                    )
+                    if (field.Name == FieldName && field.Type.ToFullName() == FieldTypeName)
                     {
                         IsFieldDeclared = true;
                         break;
@@ -151,16 +132,27 @@ namespace ZBase.Foundation.Aliasing
                 }
             }
 
+            using var memberArrayBuilder = ImmutableArrayBuilder<ISymbol>.Rent();
+            var memberStrings = new HashSet<string>(StringComparer.Ordinal);
+
             foreach (var member in fieldTypeMembers)
             {
+                if (member.DeclaredAccessibility != Accessibility.Public)
+                {
+                    continue;
+                }
+
                 if (member is IMethodSymbol method)
                 {
+                    if (method.MethodKind is (MethodKind.PropertyGet or MethodKind.PropertySet))
+                    {
+                        continue;
+                    }
+
                     switch (method.Name)
                     {
                         case "op_Equality":
                         {
-                            Operators |= OperatorOptions.Equality;
-
                             if (method.ReturnType.Name != "Boolean")
                             {
                                 EqualityReturnTypeName = method.ReturnType.ToString();
@@ -171,8 +163,6 @@ namespace ZBase.Foundation.Aliasing
 
                         case "op_GreaterThan":
                         {
-                            Operators |= OperatorOptions.GreaterThan;
-
                             if (method.ReturnType.Name != "Boolean")
                             {
                                 GreaterThanReturnTypeName = method.ReturnType.ToString();
@@ -183,8 +173,6 @@ namespace ZBase.Foundation.Aliasing
 
                         case "op_GreaterThanOrEqual":
                         {
-                            Operators |= OperatorOptions.GreaterThanOrEqual;
-
                             if (method.ReturnType.Name == "Boolean")
                             {
                                 GreaterThanOrEqualReturnTypeName = method.ReturnType.ToString();
@@ -194,18 +182,37 @@ namespace ZBase.Foundation.Aliasing
                         }
                     }
                 }
+
+                memberArrayBuilder.Add(member);
+                memberStrings.Add(member.ToDisplayString(SymbolExtensions.MemberFormat));
             }
 
-            if (fieldTypeSymbol.TypeKind == TypeKind.Enum)
+            Members = memberArrayBuilder.ToImmutable();
+
+            using var interfaceArrayBuilder = ImmutableArrayBuilder<INamedTypeSymbol>.Rent();
+
+            foreach (var @interface in FieldTypeSymbol.AllInterfaces)
             {
-                Operators |= OperatorOptions.Equality;
+                var valid = true;
+
+                foreach (var member in @interface.GetMembers())
+                {
+                    if (memberStrings.Contains(member.ToDisplayString(SymbolExtensions.MemberFormat)) == false)
+                    {
+                        valid = false;
+                        break;
+                    }
+                }
+
+                if (valid == false)
+                {
+                    continue;
+                }
+
+                interfaceArrayBuilder.Add(@interface);
             }
+
+            Interfaces = interfaceArrayBuilder.ToImmutable();
         }
-
-        public bool HasFlag(AliasOptions options)
-            => Options.HasFlag(options);
-
-        public bool HasOperator(OperatorOptions options)
-            => Operators.HasFlag(options);
     }
 }
