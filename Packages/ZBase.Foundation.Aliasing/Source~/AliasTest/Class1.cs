@@ -3,8 +3,11 @@ using ZBase.Foundation.Aliasing;
 
 namespace AliasTest
 {
-    [Alias(typeof(int), AliasOptions.Default)]
+    [Alias(typeof(int), AliasOptions.Default | AliasOptions.ValueArithmeticOperator)]
     public partial struct AliasOfInt { }
+
+    [Alias(typeof(short), AliasOptions.Default | AliasOptions.ArithmeticOperator | AliasOptions.ValueArithmeticOperator)]
+    public partial struct AliasOfShort { }
 }
 
 namespace ZBase.Foundation.Aliasing

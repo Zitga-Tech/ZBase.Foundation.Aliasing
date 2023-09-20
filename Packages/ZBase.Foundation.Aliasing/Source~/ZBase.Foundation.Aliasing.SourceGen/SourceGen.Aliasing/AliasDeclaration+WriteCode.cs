@@ -146,46 +146,62 @@ namespace ZBase.Foundation.Aliasing
                     {
                         p.PrintEndLine();
                         p.PrintLine(AGGRESSIVE_INLINING).PrintLine(GENERATED_CODE).PrintLine(EXCLUDE_COVERAGE);
-                        p.PrintLine($"public static {FullTypeName} operator +({@in}{FullTypeName} lhs, {@in}{FullTypeName} rhs) => new(({FieldTypeName})(lhs.{FieldName} + rhs.{FieldName}));");
+                        p.PrintLine($"public static {FullTypeName} operator +({@in}{FullTypeName} lhs, {@in}{FullTypeName} rhs) => new {FullTypeName}(({FieldTypeName})(lhs.{FieldName} + rhs.{FieldName}));");
 
                         p.PrintEndLine();
                         p.PrintLine(AGGRESSIVE_INLINING).PrintLine(GENERATED_CODE).PrintLine(EXCLUDE_COVERAGE);
-                        p.PrintLine($"public static {FullTypeName} operator -({@in}{FullTypeName} lhs, {@in}{FullTypeName} rhs) => new(({FieldTypeName})(lhs.{FieldName} - rhs.{FieldName}));");
+                        p.PrintLine($"public static {FullTypeName} operator -({@in}{FullTypeName} lhs, {@in}{FullTypeName} rhs) => new {FullTypeName}(({FieldTypeName})(lhs.{FieldName} - rhs.{FieldName}));");
 
                         p.PrintEndLine();
                         p.PrintLine(AGGRESSIVE_INLINING).PrintLine(GENERATED_CODE).PrintLine(EXCLUDE_COVERAGE);
-                        p.PrintLine($"public static {FullTypeName} operator *({@in}{FullTypeName} lhs, {@in}{FullTypeName} rhs) => new(({FieldTypeName})(lhs.{FieldName} * rhs.{FieldName}));");
+                        p.PrintLine($"public static {FullTypeName} operator *({@in}{FullTypeName} lhs, {@in}{FullTypeName} rhs) => new {FullTypeName}(({FieldTypeName})(lhs.{FieldName} * rhs.{FieldName}));");
 
                         p.PrintEndLine();
                         p.PrintLine(AGGRESSIVE_INLINING).PrintLine(GENERATED_CODE).PrintLine(EXCLUDE_COVERAGE);
-                        p.PrintLine($"public static {FullTypeName} operator /({@in}{FullTypeName} lhs, {@in}{FullTypeName} rhs) => new(({FieldTypeName})(lhs.{FieldName} / rhs.{FieldName}));");
+                        p.PrintLine($"public static {FullTypeName} operator /({@in}{FullTypeName} lhs, {@in}{FullTypeName} rhs) => new {FullTypeName}(({FieldTypeName})(lhs.{FieldName} / rhs.{FieldName}));");
                     }
 
                     if (HasFlag(AliasOptions.ValueArithmeticOperator))
                     {
                         p.PrintEndLine();
                         p.PrintLine(AGGRESSIVE_INLINING).PrintLine(GENERATED_CODE).PrintLine(EXCLUDE_COVERAGE);
-                        p.PrintLine($"public static {FullTypeName} operator ++({@in}{FullTypeName} lhs) {{ checked {{ return new(({FieldTypeName})(lhs.{FieldName} + 1)); }} }}");
+                        p.PrintLine($"public static {FullTypeName} operator ++({@in}{FullTypeName} lhs) {{ checked {{ return new {FullTypeName}(({FieldTypeName})(lhs.{FieldName} + 1)); }} }}");
 
                         p.PrintEndLine();
                         p.PrintLine(AGGRESSIVE_INLINING).PrintLine(GENERATED_CODE).PrintLine(EXCLUDE_COVERAGE);
-                        p.PrintLine($"public static {FullTypeName} operator --({@in}{FullTypeName} lhs) {{ checked {{ return new(({FieldTypeName})(lhs.{FieldName} - 1)); }} }}");
+                        p.PrintLine($"public static {FullTypeName} operator --({@in}{FullTypeName} lhs) {{ checked {{ return new {FullTypeName}(({FieldTypeName})(lhs.{FieldName} - 1)); }} }}");
 
                         p.PrintEndLine();
                         p.PrintLine(AGGRESSIVE_INLINING).PrintLine(GENERATED_CODE).PrintLine(EXCLUDE_COVERAGE);
-                        p.PrintLine($"public static {FullTypeName} operator +({@in}{FullTypeName} lhs, {@in}{FieldTypeName} rhs) {{ checked {{ return new(({FieldTypeName})(lhs.{FieldName} + rhs.{FieldName})); }} }}");
+                        p.PrintLine($"public static {FullTypeName} operator +({@in}{FullTypeName} lhs, {@in}{FieldTypeName} rhs) {{ checked {{ return new {FullTypeName}(({FieldTypeName})(lhs.{FieldName} + rhs)); }} }}");
 
                         p.PrintEndLine();
                         p.PrintLine(AGGRESSIVE_INLINING).PrintLine(GENERATED_CODE).PrintLine(EXCLUDE_COVERAGE);
-                        p.PrintLine($"public static {FullTypeName} operator -({@in}{FullTypeName} lhs, {@in}{FieldTypeName} rhs) {{ checked {{ return new(({FieldTypeName})(lhs.{FieldName} - rhs.{FieldName})); }} }}");
+                        p.PrintLine($"public static {FullTypeName} operator -({@in}{FullTypeName} lhs, {@in}{FieldTypeName} rhs) {{ checked {{ return new {FullTypeName}(({FieldTypeName})(lhs.{FieldName} - rhs)); }} }}");
 
                         p.PrintEndLine();
                         p.PrintLine(AGGRESSIVE_INLINING).PrintLine(GENERATED_CODE).PrintLine(EXCLUDE_COVERAGE);
-                        p.PrintLine($"public static {FullTypeName} operator *({@in}{FullTypeName} lhs, {@in}{FieldTypeName} rhs) {{ checked {{ return new(({FieldTypeName})(lhs.{FieldName} * rhs.{FieldName})); }} }}");
+                        p.PrintLine($"public static {FullTypeName} operator *({@in}{FullTypeName} lhs, {@in}{FieldTypeName} rhs) {{ checked {{ return new {FullTypeName}(({FieldTypeName})(lhs.{FieldName} * rhs)); }} }}");
 
                         p.PrintEndLine();
                         p.PrintLine(AGGRESSIVE_INLINING).PrintLine(GENERATED_CODE).PrintLine(EXCLUDE_COVERAGE);
-                        p.PrintLine($"public static {FullTypeName} operator /({@in}{FullTypeName} lhs, {@in}{FieldTypeName} rhs) {{ checked {{ return new(({FieldTypeName})(lhs.{FieldName} / rhs.{FieldName})); }} }}");
+                        p.PrintLine($"public static {FullTypeName} operator /({@in}{FullTypeName} lhs, {@in}{FieldTypeName} rhs) {{ checked {{ return new {FullTypeName}(({FieldTypeName})(lhs.{FieldName} / rhs)); }} }}");
+
+                        p.PrintEndLine();
+                        p.PrintLine(AGGRESSIVE_INLINING).PrintLine(GENERATED_CODE).PrintLine(EXCLUDE_COVERAGE);
+                        p.PrintLine($"public static {FullTypeName} operator +({@in}{FieldTypeName} lhs, {@in}{FullTypeName} rhs) {{ checked {{ return new {FullTypeName}(({FieldTypeName})(lhs + rhs.{FieldName})); }} }}");
+
+                        p.PrintEndLine();
+                        p.PrintLine(AGGRESSIVE_INLINING).PrintLine(GENERATED_CODE).PrintLine(EXCLUDE_COVERAGE);
+                        p.PrintLine($"public static {FullTypeName} operator -({@in}{FieldTypeName} lhs, {@in}{FullTypeName} rhs) {{ checked {{ return new {FullTypeName}(({FieldTypeName})(lhs - rhs.{FieldName})); }} }}");
+
+                        p.PrintEndLine();
+                        p.PrintLine(AGGRESSIVE_INLINING).PrintLine(GENERATED_CODE).PrintLine(EXCLUDE_COVERAGE);
+                        p.PrintLine($"public static {FullTypeName} operator *({@in}{FieldTypeName} lhs, {@in}{FullTypeName} rhs) {{ checked {{ return new {FullTypeName}(({FieldTypeName})(lhs * rhs.{FieldName})); }} }}");
+
+                        p.PrintEndLine();
+                        p.PrintLine(AGGRESSIVE_INLINING).PrintLine(GENERATED_CODE).PrintLine(EXCLUDE_COVERAGE);
+                        p.PrintLine($"public static {FullTypeName} operator /({@in}{FieldTypeName} lhs, {@in}{FullTypeName} rhs) {{ checked {{ return new {FullTypeName}(({FieldTypeName})(lhs / rhs.{FieldName})); }} }}");
                     }
 
                     if (HasFlag(AliasOptions.Comparable))
