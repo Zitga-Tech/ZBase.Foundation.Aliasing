@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using ZBase.Foundation.Aliasing;
 
 namespace AliasTest
@@ -8,6 +9,30 @@ namespace AliasTest
 
     [Alias(typeof(short), AliasOptions.Default | AliasOptions.ArithmeticOperator | AliasOptions.ValueArithmeticOperator)]
     public partial struct AliasOfShort { }
+
+    public enum FruitType : byte
+    {
+        None,
+        Apple,
+        Banana,
+    }
+
+    [Alias(typeof(byte), AliasOptions.Default)]
+    public readonly partial struct AliasOfFruitByte
+    {
+        [FieldOffset(0)]
+        public readonly FruitType Fruit;
+
+        public AliasOfFruitByte(FruitType value) : this()
+        {
+            Fruit = value;
+        }
+
+        public override string ToString()
+        {
+            return Fruit.ToString();
+        }
+    }
 }
 
 namespace ZBase.Foundation.Aliasing
