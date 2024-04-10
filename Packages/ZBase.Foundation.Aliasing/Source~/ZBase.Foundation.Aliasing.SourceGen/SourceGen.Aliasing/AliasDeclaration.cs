@@ -41,6 +41,8 @@ namespace ZBase.Foundation.Aliasing
 
         public string GreaterThanOrEqualReturnTypeName { get; private set; }
 
+        public bool IgnoredToString { get; private set; }
+
         public AliasDeclaration(
               StructDeclarationSyntax syntax
             , INamedTypeSymbol symbol
@@ -146,8 +148,23 @@ namespace ZBase.Foundation.Aliasing
                     )
                     {
                         IsFieldDeclared = true;
-                        break;
                     }
+
+                    continue;
+                }
+
+                if (member is IMethodSymbol method)
+                {
+                    if (method.ReturnsVoid == false
+                        && method.Parameters.Length == 0
+                        && method.ReturnType.SpecialType == SpecialType.System_String
+                        && method.Name == "ToString"
+                    )
+                    {
+                        IgnoredToString = true;
+                    }
+
+                    continue;
                 }
             }
 

@@ -92,19 +92,22 @@ namespace ZBase.Foundation.Aliasing
                     p.PrintLine(AGGRESSIVE_INLINING).PrintLine(GENERATED_CODE).PrintLine(EXCLUDE_COVERAGE);
                     p.PrintLine($"public override int GetHashCode() => {FieldName}.GetHashCode();");
 
-                    p.PrintEndLine();
-                    p.PrintLine(AGGRESSIVE_INLINING).PrintLine(GENERATED_CODE).PrintLine(EXCLUDE_COVERAGE);
-                    p.PrintLine("public override string ToString()");
-                    p = p.IncreasedIndent();
-                    if (string.IsNullOrEmpty(ToStringFormat))
+                    if (IgnoredToString == false)
                     {
-                        p.PrintLine($"=> {FieldName}.ToString();");
+                        p.PrintEndLine();
+                        p.PrintLine(AGGRESSIVE_INLINING).PrintLine(GENERATED_CODE).PrintLine(EXCLUDE_COVERAGE);
+                        p.PrintLine("public override string ToString()");
+                        p = p.IncreasedIndent();
+                        if (string.IsNullOrEmpty(ToStringFormat))
+                        {
+                            p.PrintLine($"=> {FieldName}.ToString();");
+                        }
+                        else
+                        {
+                            p.PrintLine($"=> string.Format({ToStringFormat}, {FieldName});");
+                        }
+                        p = p.DecreasedIndent();
                     }
-                    else
-                    {
-                        p.PrintLine($"=> string.Format({ToStringFormat}, {FieldName});");
-                    }
-                    p = p.DecreasedIndent();
 
                     if (HasOperator(OperatorOptions.Equality) && EqualityReturnTypeName == "bool")
                     {
