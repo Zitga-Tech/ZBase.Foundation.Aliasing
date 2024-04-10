@@ -7,6 +7,8 @@ namespace ZBase.Foundation.Aliasing
         private const string AGGRESSIVE_INLINING = "[global::System.Runtime.CompilerServices.MethodImpl(global::System.Runtime.CompilerServices.MethodImplOptions.AggressiveInlining)]";
         private const string GENERATED_CODE = "[global::System.CodeDom.Compiler.GeneratedCode(\"ZBase.Foundation.Aliasing.AliasGenerator\", \"1.0.2\")]";
         private const string EXCLUDE_COVERAGE = "[global::System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]";
+        private const string LAYOUT_EXPLICIT = "[global::System.Runtime.InteropServices.StructLayout(global::System.Runtime.InteropServices.LayoutKind.Explicit)]";
+        private const string FIELD_OFFSET_0 = "[global::System.Runtime.InteropServices.FieldOffset(0)]";
 
         public string WriteCode()
         {
@@ -18,6 +20,7 @@ namespace ZBase.Foundation.Aliasing
 
             p = p.IncreasedIndent();
             {
+                p.PrintLine(LAYOUT_EXPLICIT);
                 p.PrintLine($"[global::System.ComponentModel.TypeConverter(typeof({TypeName}TypeConverter))]");
                 p.PrintLine($"partial struct {TypeName} : global::System.IEquatable<{FullTypeName}>");
 
@@ -32,6 +35,7 @@ namespace ZBase.Foundation.Aliasing
                 {
                     if (IsFieldDeclared == false)
                     {
+                        p.PrintLine(FIELD_OFFSET_0);
                         p.PrintLine(GENERATED_CODE);
                         p.PrintBeginLine();
                         {
