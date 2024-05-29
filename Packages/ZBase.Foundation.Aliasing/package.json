@@ -2,7 +2,7 @@
   "name": "com.zbase.foundation.aliasing",
   "displayName": "ZBase.Foundation.Aliasing",
   "version": "1.0.7",
-  "unity": "2021.3",
+  "unity": "2022.3",
   "documentationUrl": "https://github.com/Zitga-Tech/ZBase.Foundation.Aliasing/blob/main/README.md",
   "type": "library"
 }
