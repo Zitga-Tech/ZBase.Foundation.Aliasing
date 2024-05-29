@@ -21,7 +21,12 @@ namespace ZBase.Foundation.Aliasing
             p = p.IncreasedIndent();
             {
                 p.PrintLine(LAYOUT_EXPLICIT);
-                p.PrintLine($"[global::System.ComponentModel.TypeConverter(typeof({TypeName}TypeConverter))]");
+
+                if (HasFlag(AliasOptions.WithoutTypeConverter) == false)
+                {
+                    p.PrintLine($"[global::System.ComponentModel.TypeConverter(typeof({TypeName}TypeConverter))]");
+                }
+
                 p.PrintLine($"partial struct {TypeName} : global::System.IEquatable<{FullTypeName}>");
 
                 if (HasFlag(AliasOptions.Comparable))
@@ -263,75 +268,77 @@ namespace ZBase.Foundation.Aliasing
                         }
                     }
 
-                    p.PrintEndLine();
-
-                    p.PrintLine(GENERATED_CODE).PrintLine(EXCLUDE_COVERAGE);
-                    p.PrintLine($"private class {TypeName}TypeConverter : global::System.ComponentModel.TypeConverter");
-                    p.OpenScope();
+                    if (HasFlag(AliasOptions.WithoutTypeConverter) == false)
                     {
-                        p.PrintLine($"private static readonly global::System.Type s_wrapperType = typeof({FullTypeName});");
-                        p.PrintLine($"private static readonly global::System.Type s_valueType = typeof({FieldTypeName});");
-
                         p.PrintEndLine();
-
                         p.PrintLine(GENERATED_CODE).PrintLine(EXCLUDE_COVERAGE);
-                        p.PrintLine($"public override bool CanConvertFrom(global::System.ComponentModel.ITypeDescriptorContext context, global::System.Type sourceType)");
+                        p.PrintLine($"private class {TypeName}TypeConverter : global::System.ComponentModel.TypeConverter");
                         p.OpenScope();
                         {
-                            p.PrintLine("if (sourceType == s_wrapperType || sourceType == s_valueType) return true;");
-                            p.PrintLine("return base.CanConvertFrom(context, sourceType);");
-                        }
-                        p.CloseScope();
+                            p.PrintLine($"private static readonly global::System.Type s_wrapperType = typeof({FullTypeName});");
+                            p.PrintLine($"private static readonly global::System.Type s_valueType = typeof({FieldTypeName});");
 
-                        p.PrintEndLine();
+                            p.PrintEndLine();
 
-                        p.PrintLine(GENERATED_CODE).PrintLine(EXCLUDE_COVERAGE);
-                        p.PrintLine($"public override bool CanConvertTo(global::System.ComponentModel.ITypeDescriptorContext context, global::System.Type destinationType)");
-                        p.OpenScope();
-                        {
-                            p.PrintLine($"if (destinationType == s_wrapperType || destinationType == s_valueType) return true;");
-                            p.PrintLine($"return base.CanConvertTo(context, destinationType);");
-                        }
-                        p.CloseScope();
-
-                        p.PrintEndLine();
-
-                        p.PrintLine(GENERATED_CODE).PrintLine(EXCLUDE_COVERAGE);
-                        p.PrintLine($"public override object ConvertFrom(global::System.ComponentModel.ITypeDescriptorContext context, global::System.Globalization.CultureInfo culture, object value)");
-                        p.OpenScope();
-                        {
-                            p.PrintLine("if (value != null)");
+                            p.PrintLine(GENERATED_CODE).PrintLine(EXCLUDE_COVERAGE);
+                            p.PrintLine($"public override bool CanConvertFrom(global::System.ComponentModel.ITypeDescriptorContext context, global::System.Type sourceType)");
                             p.OpenScope();
                             {
-                                p.PrintLine("var t = value.GetType();");
-                                p.PrintLine($"if (t == typeof({FullTypeName})) return ({FullTypeName})value;");
-                                p.PrintLine($"if (t == typeof({FieldTypeName})) return new {FullTypeName}(({FieldTypeName})value);");
+                                p.PrintLine("if (sourceType == s_wrapperType || sourceType == s_valueType) return true;");
+                                p.PrintLine("return base.CanConvertFrom(context, sourceType);");
                             }
                             p.CloseScope();
 
-                            p.PrintLine("return base.ConvertFrom(context, culture, value);");
-                        }
-                        p.CloseScope();
+                            p.PrintEndLine();
 
-                        p.PrintEndLine();
-
-                        p.PrintLine(GENERATED_CODE).PrintLine(EXCLUDE_COVERAGE);
-                        p.PrintLine($"public override object ConvertTo(global::System.ComponentModel.ITypeDescriptorContext context, global::System.Globalization.CultureInfo culture, object value, global::System.Type destinationType)");
-                        p.OpenScope();
-                        {
-                            p.PrintLine($"if (value is {FullTypeName} wrappedValue)");
+                            p.PrintLine(GENERATED_CODE).PrintLine(EXCLUDE_COVERAGE);
+                            p.PrintLine($"public override bool CanConvertTo(global::System.ComponentModel.ITypeDescriptorContext context, global::System.Type destinationType)");
                             p.OpenScope();
                             {
-                                p.PrintLine("if (destinationType == s_wrapperType) return wrappedValue;");
-                                p.PrintLine("if (destinationType == s_valueType) return wrappedValue.AsPrimitive();");
+                                p.PrintLine($"if (destinationType == s_wrapperType || destinationType == s_valueType) return true;");
+                                p.PrintLine($"return base.CanConvertTo(context, destinationType);");
                             }
                             p.CloseScope();
 
-                            p.PrintLine("return base.ConvertTo(context, culture, value, destinationType);");
+                            p.PrintEndLine();
+
+                            p.PrintLine(GENERATED_CODE).PrintLine(EXCLUDE_COVERAGE);
+                            p.PrintLine($"public override object ConvertFrom(global::System.ComponentModel.ITypeDescriptorContext context, global::System.Globalization.CultureInfo culture, object value)");
+                            p.OpenScope();
+                            {
+                                p.PrintLine("if (value != null)");
+                                p.OpenScope();
+                                {
+                                    p.PrintLine("var t = value.GetType();");
+                                    p.PrintLine($"if (t == typeof({FullTypeName})) return ({FullTypeName})value;");
+                                    p.PrintLine($"if (t == typeof({FieldTypeName})) return new {FullTypeName}(({FieldTypeName})value);");
+                                }
+                                p.CloseScope();
+
+                                p.PrintLine("return base.ConvertFrom(context, culture, value);");
+                            }
+                            p.CloseScope();
+
+                            p.PrintEndLine();
+
+                            p.PrintLine(GENERATED_CODE).PrintLine(EXCLUDE_COVERAGE);
+                            p.PrintLine($"public override object ConvertTo(global::System.ComponentModel.ITypeDescriptorContext context, global::System.Globalization.CultureInfo culture, object value, global::System.Type destinationType)");
+                            p.OpenScope();
+                            {
+                                p.PrintLine($"if (value is {FullTypeName} wrappedValue)");
+                                p.OpenScope();
+                                {
+                                    p.PrintLine("if (destinationType == s_wrapperType) return wrappedValue;");
+                                    p.PrintLine("if (destinationType == s_valueType) return wrappedValue.AsPrimitive();");
+                                }
+                                p.CloseScope();
+
+                                p.PrintLine("return base.ConvertTo(context, culture, value, destinationType);");
+                            }
+                            p.CloseScope();
                         }
                         p.CloseScope();
                     }
-                    p.CloseScope();
                 }
                 p.CloseScope();
             }

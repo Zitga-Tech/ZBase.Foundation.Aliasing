@@ -17,6 +17,7 @@ namespace ZBase.Foundation.Aliasing
         ExposeValueAsPublicField             = 1 << 5,
         IsReadOnlyRef                        = 1 << 6,
         Validate                             = 1 << 7,
+        WithoutTypeConverter                 = 1 << 8,
 
         Default                              = ImplicitOperator | ExposeValueAsPublicField,
         DefaultReadOnlyRef                   = Default | IsReadOnlyRef,

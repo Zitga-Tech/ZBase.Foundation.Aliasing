@@ -5,6 +5,9 @@ namespace AliasTests
 {
     [Alias(typeof(int), AliasOptions.Default)]
     public partial struct AliasOfInt { }
+    
+    [Alias(typeof(int), AliasOptions.Default | AliasOptions.WithoutTypeConverter)]
+    public partial struct AliasOfFloat { }
 
     public enum FruitType : byte
     {
